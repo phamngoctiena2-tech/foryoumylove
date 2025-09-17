@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💌 For You</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@300;400;700&display=swap');
+
+        :root {
+            --primary-color: #ffb6c1; /* Light Pink */
+            --secondary-color: #ffe4e1; /* Misty Rose */
+            --text-color: #333;
+            --heart-color: #ff69b4; /* Hot Pink */
+            --font-main: 'Quicksand', sans-serif;
+            --font-handwriting: 'Pacifico', cursive;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-main);
+            color: var(--text-color);
+            background-color: var(--secondary-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            transition: background-color 1.5s ease-in-out;
+        }
+
+        .container {
+            max-width: 800px;
+            padding: 40px;
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 1.5s ease-in-out, transform 1.5s ease-in-out;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .container.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        #login-screen {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+
+        #login-screen h1 {
+            font-family: var(--font-handwriting);
+            color: white;
+            font-size: 3em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #login-screen input {
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            margin-top: 10px;
+            width: 80%;
+            max-width: 300px;
+        }
+
+        #login-screen button {
+            background-color: #fff;
+            color: var(--primary-color);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        #error-message {
+            color: #d9534f;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        /* --- Main Content --- */
+        #main-content {
+            background-color: rgba(255, 255, 255, 0.85);
+        }
+
+        #main-content h1 {
+            font-family: var(--font-handwriting);
+            color: var(--heart-color);
+            font-size: 2.5em;
+        }
+
+        #main-content p {
+            white-space: pre-wrap;
+            opacity: 0;
+            animation: fadeIn 2s forwards;
+            line-height: 1.6;
+            font-size: 1.1em;
+            margin-top: 20px;
+        }
+        
+        #final-question {
+            background-color: rgba(255, 255, 255, 0.85);
+        }
+
+        #final-question .question-text {
+            font-family: var(--font-handwriting);
+            font-size: 3em;
+            color: var(--heart-color);
+            margin-bottom: 20px;
+        }
+
+        .choice-buttons button {
+            padding: 15px 40px;
+            font-size: 1.8em;
+            border: none;
+            border-radius: 35px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            font-weight: bold;
+            margin: 0 15px;
+        }
+
+        #yes-btn {
+            background-color: #66bb6a;
+            color: white;
+        }
+
+        #no-btn {
+            background-color: #ef5350;
+            color: white;
+            position: relative;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginScreen = document.getElementById('login-screen');
+            const mainContent = document.getElementById('main-content');
+            const finalQuestion = document.getElementById('final-question');
+            const music = document.getElementById('background-music');
+            const passwordInput = document.getElementById('password');
+            const errorMessage = document.getElementById('error-message');
+            const mainTitle = document.getElementById('main-title');
+            const paragraphText = document.getElementById('paragraph-text');
+            const yesBtn = document.getElementById('yes-btn');
+            const noBtn = document.getElementById('no-btn');
+
+            // Note: Thay thế bằng mật khẩu bí mật của bạn
+            const correctPassword = 'iloveyou';
+
+            const paragraphs = [
+                `You might be surprised to receive these words from me. Normally, I’m not someone who writes or expresses feelings easily, but today I want to do something different – I want to say something I’ve kept in my heart for a long time.`,
+                `I still remember the first time I saw you – your smile completely caught me off guard. As we talked more over time, I realized you're not only adorable, but also kind, thoughtful, and really smart. Every time you laugh or share a story, everything just feels a little brighter.`,
+                `I think… I really like you. It’s not just a passing feeling, but something that’s grown stronger each day. I can’t stop thinking about you, and every moment I get to spend talking or being around you means a lot to me.`,
+                `I don’t expect you to answer right away, and I don’t want to put any pressure on you. I just want you to know that someone truly cares and is quietly hoping for a chance. If possible, I’d love to be someone who gets to be by your side – sharing both the happy and hard moments in life.`,
+                `No matter what your answer is, I’ll always treasure the connection we have. Thank you for being such a special part of my life. And… thank you for reading all of this.`
+            ];
+            let currentParagraphIndex = 0;
+
+            // Handle login
+            document.getElementById('login-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (passwordInput.value === correctPassword) {
+                    music.play().catch(e => { console.log("Music autoplay failed, please click the screen."); });
+
+                    loginScreen.classList.remove('active');
+                    setTimeout(() => {
+                        loginScreen.style.display = 'none';
+                        mainContent.classList.add('active');
+                        mainTitle.textContent = "Heyyyy...";
+                        showParagraphs();
+                    }, 1500);
+                } else {
+                    errorMessage.style.opacity = 1;
+                    setTimeout(() => { errorMessage.style.opacity = 0; }, 2000);
+                }
+            });
+
+            // Display paragraphs
+            function showParagraphs() {
+                if (currentParagraphIndex < paragraphs.length) {
+                    const p = paragraphText;
+                    p.textContent = paragraphs[currentParagraphIndex];
+                    p.style.animation = 'none';
+                    p.offsetHeight;
+                    p.style.animation = 'fadeIn 2s forwards';
+
+                    document.addEventListener('click', advanceContent, { once: true });
+                    document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            advanceContent();
+                        }
+                    }, { once: true });
+
+                } else {
+                    setTimeout(() => {
+                        mainContent.classList.remove('active');
+                        setTimeout(() => {
+                            mainContent.style.display = 'none';
+                            finalQuestion.classList.add('active');
+                        }, 1500);
+                    }, 2000);
+                }
+            }
+
+            function advanceContent() {
+                currentParagraphIndex++;
+                showParagraphs();
+            }
+
+            // Handle No button
+            noBtn.addEventListener('click', function(e) {
+                const noBtn = e.target;
+                const container = noBtn.parentElement.parentElement;
+                
+                const randomX = Math.random() * (container.offsetWidth - noBtn.offsetWidth);
+                const randomY = Math.random() * (container.offsetHeight - noBtn.offsetHeight);
+                
+                noBtn.style.position = 'absolute';
+                noBtn.style.left = `${randomX}px`;
+                noBtn.style.top = `${randomY}px`;
+                
+                noBtn.style.transition = 'all 0.5s ease-out';
+                noBtn.style.transform = 'scale(0.1) rotate(360deg)';
+                noBtn.style.opacity = '0';
+
+                setTimeout(() => {
+                    noBtn.style.display = 'none';
+                }, 500);
+            });
+
+            // Handle Yes button
+            yesBtn.addEventListener('click', function() {
+                this.textContent = 'I KNEW IT! ❤️';
+                this.style.backgroundColor = '#4CAF50';
+                this.style.boxShadow = '0 0 20px rgba(76, 175, 80, 0.8)';
+                this.disabled = true;
+                document.querySelector('#final-question .note-text').textContent = 'My heart is melting right now...';
+            });
+        });
+    </script>
+</head>
+<body>
+
+    <audio id="background-music" loop>
+        <source src="YOUR_DIRECT_MP3_LINK_HERE" type="audio/mpeg">
+    </audio>
+
+    <div id="login-screen" class="container active">
+        <h1>Welcome</h1>
+        <form id="login-form">
+            <input type="password" id="password" placeholder="Enter The Secret Password" required>
+            <button type="submit">Let's Begin</button>
+        </form>
+        <p id="error-message">Invalid password. Try again!</p>
+    </div>
+
+    <div id="main-content" class="container">
+        <h1 id="main-title"></h1>
+        <p id="paragraph-text"></p>
+        <p style="font-size: 0.9em; color: #888; margin-top: 20px;">
+            (Click anywhere to continue...)
+        </p>
+    </div>
+    
+    <div id="final-question" class="container">
+        <p class="question-text">So, do you love me...?</p>
+        <div class="choice-buttons">
+            <button id="yes-btn">Yes ❤️</button>
+            <button id="no-btn">No 💔</button>
+        </div>
+        <p class="note-text" style="font-size: 0.9em; color: #888; margin-top: 10px;">
+            (Try clicking "No"...)
+        </p>
+    </div>
+</body>
+</html>
